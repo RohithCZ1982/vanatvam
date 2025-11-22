@@ -178,8 +178,10 @@ function generateCalendar(monthDate, bookings) {
         if (dayBookings.length > 0) {
             html += '<div class="calendar-bookings">';
             dayBookings.forEach(booking => {
+                const projectColor = getProjectColor(booking.projectName);
+                const titleText = `${escapeHtml(booking.customerName)} - ${escapeHtml(booking.projectName || 'No Project')} - ${booking.numberOfRooms} room(s)`;
                 html += `
-                    <div class="calendar-booking" title="${escapeHtml(booking.customerName)} - ${booking.numberOfRooms} room(s)">
+                    <div class="calendar-booking" style="background: ${projectColor};" title="${titleText}">
                         ${escapeHtml(booking.customerName)}
                     </div>
                 `;
@@ -197,6 +199,47 @@ function generateCalendar(monthDate, bookings) {
     `;
     
     return html;
+}
+
+// Generate a consistent color for a project name
+function getProjectColor(projectName) {
+    if (!projectName) {
+        return '#8B4513'; // Default color
+    }
+    
+    // Color palette for projects (distinct colors)
+    const colors = [
+        '#8B4513', // Brown
+        '#2E7D32', // Green
+        '#1976D2', // Blue
+        '#D32F2F', // Red
+        '#F57C00', // Orange
+        '#7B1FA2', // Purple
+        '#0288D1', // Light Blue
+        '#388E3C', // Dark Green
+        '#C2185B', // Pink
+        '#5D4037', // Dark Brown
+        '#00796B', // Teal
+        '#E64A19', // Deep Orange
+        '#303F9F', // Indigo
+        '#C62828', // Dark Red
+        '#AD1457', // Dark Pink
+        '#6A1B9A', // Dark Purple
+        '#00695C', // Dark Teal
+        '#455A64', // Blue Grey
+        '#BF360C', // Deep Red
+        '#1B5E20'  // Very Dark Green
+    ];
+    
+    // Simple hash function to convert project name to a number
+    let hash = 0;
+    for (let i = 0; i < projectName.length; i++) {
+        hash = projectName.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    
+    // Use absolute value and modulo to get index
+    const colorIndex = Math.abs(hash) % colors.length;
+    return colors[colorIndex];
 }
 
 // Escape HTML to prevent XSS

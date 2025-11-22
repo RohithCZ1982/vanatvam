@@ -484,6 +484,8 @@ def add_booking():
         
         bookings = load_bookings()
         
+        # Note: Multiple customers can book the same date for the same project
+        # No conflict validation is performed - allowing multiple bookings per date/project
         new_booking = {
             'id': str(int(datetime.now().timestamp() * 1000)),
             'customerId': customer_id,
