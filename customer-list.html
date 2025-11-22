@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customers - Vanatvam</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <nav class="navbar" id="navbar">
+            <div class="nav-brand">
+                <div class="logo-container">
+                    <div class="logo-inner">
+                        <div class="logo-text-top">VANATVAM</div>
+                        <div class="logo-icon">🌿</div>
+                        <div class="logo-text-bottom">SUSTAINABLE</div>
+                    </div>
+                </div>
+                <h1>Vanatvam</h1>
+            </div>
+            <button class="menu-toggle" id="menuToggle" onclick="toggleMobileMenu()" aria-label="Toggle menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            <div class="nav-menu" id="navMenu">
+                <!-- Menu items will be populated based on user role -->
+            </div>
+        </nav>
+
+        <div class="dashboard">
+            <div class="search-section">
+                <h2>Customers</h2>
+                <div class="search-box">
+                    <input type="text" id="searchInput" placeholder="Search by name, mobile, plot number, or project name...">
+                </div>
+            </div>
+
+            <div class="table-container">
+                <table id="customersTable">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Mobile</th>
+                            <th>Plot Number</th>
+                            <th>Square Feet</th>
+                            <th>Project Name</th>
+                            <th>Tasks</th>
+                            <th id="actionsHeader" style="display: none;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="customersTableBody">
+                        <tr>
+                            <td colspan="7" class="no-data">No customers found</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <script src="app.js"></script>
+    <script src="customer-list.js"></script>
+</body>
+</html>
+

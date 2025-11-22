@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Room Booking Calendar - Vanatvam</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <nav class="navbar">
+            <div class="nav-brand">
+                <div class="logo-container">
+                    <div class="logo-inner">
+                        <div class="logo-text-top">VANATVAM</div>
+                        <div class="logo-icon">🌿</div>
+                        <div class="logo-text-bottom">SUSTAINABLE</div>
+                    </div>
+                </div>
+                <h1>Vanatvam</h1>
+            </div>
+            <button class="menu-toggle" id="menuToggle" onclick="toggleMobileMenu()" aria-label="Toggle menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            <div class="nav-menu" id="navMenu">
+                <a href="dashboard.html" class="nav-link">Dashboard</a>
+                <a href="calendar.html" class="nav-link active">Calendar</a>
+                <a href="customer-list.html" class="nav-link">Customers</a>
+                <a href="add-customer.html" class="nav-link">Add Customer</a>
+                <span id="userRole" class="nav-user-info" style="display: none;"></span>
+                <a href="#" class="nav-link nav-link-logout" onclick="handleLogout(); return false;">Logout</a>
+            </div>
+        </nav>
+
+        <div class="dashboard">
+            <div class="dashboard-header">
+                <h1>Room Booking Calendar</h1>
+                <div class="filter-controls">
+                    <div class="filter-group">
+                        <label for="projectFilter">Filter by Project: </label>
+                        <select id="projectFilter" class="date-input">
+                            <option value="">All Projects</option>
+                            <option value="Madhuvana">Madhuvana</option>
+                            <option value="Shukavana">Shukavana</option>
+                            <option value="Saptavana">Saptavana</option>
+                            <option value="Anantavana">Anantavana</option>
+                            <option value="Brindavana">Brindavana</option>
+                        </select>
+                    </div>
+                    <div class="filter-group month-navigation">
+                        <span class="month-nav-arrow" id="prevMonthBtn" onclick="navigateMonth(-1)">‹</span>
+                        <span class="month-display" id="monthDisplay">November</span>
+                        <span class="month-nav-arrow" id="nextMonthBtn" onclick="navigateMonth(1)">›</span>
+                    </div>
+                </div>
+            </div>
+
+            <div id="calendarContainer" class="calendar-container">
+                <div class="calendar-loading">Loading calendar...</div>
+            </div>
+        </div>
+    </div>
+    <script src="app.js"></script>
+    <script src="calendar.js"></script>
+</body>
+</html>
+

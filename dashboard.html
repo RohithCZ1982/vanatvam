@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Dashboard - Vanatvam</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <nav class="navbar">
+            <div class="nav-brand">
+                <div class="logo-container">
+                    <div class="logo-inner">
+                        <div class="logo-text-top">VANATVAM</div>
+                        <div class="logo-icon">🌿</div>
+                        <div class="logo-text-bottom">SUSTAINABLE</div>
+                    </div>
+                </div>
+                <h1>Vanatvam</h1>
+            </div>
+            <button class="menu-toggle" id="menuToggle" onclick="toggleMobileMenu()" aria-label="Toggle menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            <div class="nav-menu" id="navMenu">
+                <a href="dashboard.html" class="nav-link active">Dashboard</a>
+                <a href="calendar.html" class="nav-link">Calendar</a>
+                <a href="customer-list.html" class="nav-link">Customers</a>
+                <a href="add-customer.html" class="nav-link">Add Customer</a>
+                <span id="userRole" class="nav-user-info" style="display: none;"></span>
+                <a href="#" class="nav-link nav-link-logout" onclick="handleLogout(); return false;">Logout</a>
+            </div>
+        </nav>
+
+        <div class="dashboard">
+            <div class="dashboard-header">
+                <h1>Task Dashboard</h1>
+                <div class="filter-controls">
+                    <div class="filter-group">
+                        <label for="projectFilter">Filter by Project: </label>
+                        <select id="projectFilter" class="date-input">
+                            <option value="">All Projects</option>
+                            <option value="Madhuvana" selected>Madhuvana</option>
+                            <option value="Shukavana">Shukavana</option>
+                            <option value="Saptavana">Saptavana</option>
+                            <option value="Anantavana">Anantavana</option>
+                            <option value="Brindavana">Brindavana</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="dateFilter">Filter by Date: </label>
+                        <input type="date" id="dateFilter" class="date-input" value="">
+                    </div>
+                    <div class="filter-group">
+                        <button class="btn btn-secondary btn-small" onclick="clearDateFilter()">Show All Tasks</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tasks-summary">
+                <p id="tasksCount">Loading...</p>
+            </div>
+
+            <div class="tasks-container">
+                <div id="tasksList" class="tasks-list">
+                    <div class="no-data">Loading tasks...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="app.js"></script>
+    <script src="dashboard.js"></script>
+</body>
+</html>
