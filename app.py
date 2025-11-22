@@ -17,9 +17,6 @@ BOOKINGS_FILE = os.path.join(DATA_DIR, 'bookings.json')
 # Ensure data directory exists
 os.makedirs(DATA_DIR, exist_ok=True)
 
-# Initialize data files on app startup
-init_data_files()
-
 # Initialize data files if they don't exist
 def init_data_files():
     if not os.path.exists(USERS_FILE):
@@ -41,6 +38,9 @@ def init_data_files():
     if not os.path.exists(BOOKINGS_FILE):
         with open(BOOKINGS_FILE, 'w') as f:
             json.dump([], f, indent=2)
+
+# Initialize data files on app startup
+init_data_files()
 
 # Load data from JSON file
 def load_customers():
