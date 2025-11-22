@@ -5,7 +5,7 @@ import os
 from datetime import datetime
 
 app = Flask(__name__, static_folder='.')
-CORS(app, resources={r"/api/*": {"origins": "*"}})  # Enable CORS for API endpoints
+CORS(app, resources={r"/*": {"origins": "*"}})  # Enable CORS for all routes
 
 # Data file paths
 DATA_DIR = 'data'
@@ -16,6 +16,9 @@ BOOKINGS_FILE = os.path.join(DATA_DIR, 'bookings.json')
 
 # Ensure data directory exists
 os.makedirs(DATA_DIR, exist_ok=True)
+
+# Initialize data files on app startup
+init_data_files()
 
 # Initialize data files if they don't exist
 def init_data_files():
@@ -533,9 +536,9 @@ def health_check():
     return jsonify({'status': 'ok'}), 200
 
 if __name__ == '__main__':
-    init_data_files()
     print("Starting Flask server...")
     print("Access the application at http://localhost:5000")
     print("Login page: http://localhost:5000/index.html")
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    port = int(os.environ.get('PORT', 5000))
+    app.run(debug=True, host='0.0.0.0', port=port)
 

@@ -1,5 +1,5 @@
-// API Base URL
-const API_BASE_URL = 'http://localhost:5000/api';
+// API Base URL - automatically detect based on current host
+const API_BASE_URL = `${window.location.origin}/api`;
 
 // Get current user from sessionStorage
 function getCurrentUser() {
