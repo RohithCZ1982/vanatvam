@@ -1,0 +1,29 @@
+[
+  {
+    "id": "1763795178861",
+    "name": "Sarojamma",
+    "mobile": "9945628874",
+    "plotNumber": "15",
+    "squareFeet": "6000",
+    "projectName": "Madhuvana",
+    "createdAt": "2025-11-22T12:36:18.862395"
+  },
+  {
+    "id": "1763795194817",
+    "name": "Suneetha",
+    "mobile": "9902242880",
+    "plotNumber": "12",
+    "squareFeet": "7000",
+    "projectName": "Shukavana",
+    "createdAt": "2025-11-22T12:36:34.817511"
+  },
+  {
+    "id": "1763797525851",
+    "name": "Suneetha",
+    "mobile": "9902242880",
+    "plotNumber": "02",
+    "squareFeet": "5600",
+    "projectName": "Saptavana",
+    "createdAt": "2025-11-22T13:15:25.851292"
+  }
+]

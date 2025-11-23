@@ -1,0 +1,38 @@
+[
+  {
+    "id": "1763795238586",
+    "customerId": "1763795178861",
+    "title": "Check the flower plants",
+    "description": "make sure the plants the watered. Client expected to visit on Monday",
+    "taskDate": "2025-11-22",
+    "status": "pending",
+    "createdAt": "2025-11-22T12:37:18.586767"
+  },
+  {
+    "id": "1763795317499",
+    "customerId": "1763795178861",
+    "title": "Check the coconut trees",
+    "description": "Check the coconut trees",
+    "taskDate": "2025-11-22",
+    "status": "pending",
+    "createdAt": "2025-11-22T12:38:37.499499"
+  },
+  {
+    "id": "1763795530289",
+    "customerId": "1763795194817",
+    "title": "Check the flower plants",
+    "description": "water the plants customer visit on monday. may stay there for two days. Arrange for food and coconut water if available",
+    "taskDate": "2025-11-22",
+    "status": "pending",
+    "createdAt": "2025-11-22T12:42:10.289894"
+  },
+  {
+    "id": "1763795733550",
+    "customerId": "1763795178861",
+    "title": "Check the flower plants",
+    "description": ": water the plants customer visit on monday. may stay there for two days. Arrange for food and coconut water if available: water the plants customer visit on monday. may stay there for two days. Arrange for food and coconut water if available: water the plants customer visit on monday. may stay there for two days. Arrange for food and coconut water if available",
+    "taskDate": "2025-11-22",
+    "status": "pending",
+    "createdAt": "2025-11-22T12:45:33.550370"
+  }
+]
