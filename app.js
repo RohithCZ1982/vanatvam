@@ -105,12 +105,23 @@ async function addTask(taskData) {
     }
 }
 
-// API: Get all tasks (optionally filtered by date)
-async function getAllTasks(date = null) {
+// API: Get all tasks (optionally filtered by date/project)
+async function getAllTasks(date = null, projectName = null, includeCompleted = false) {
     try {
-        let url = `${API_BASE_URL}/tasks`;
+        const params = [];
         if (date) {
-            url += `?date=${encodeURIComponent(date)}`;
+            params.push(`date=${encodeURIComponent(date)}`);
+        }
+        if (projectName) {
+            params.push(`projectName=${encodeURIComponent(projectName)}`);
+        }
+        if (includeCompleted) {
+            params.push('include_completed=true');
+        }
+
+        let url = `${API_BASE_URL}/tasks`;
+        if (params.length > 0) {
+            url += `?${params.join('&')}`;
         }
         const response = await fetch(url);
         
@@ -193,6 +204,23 @@ async function updateTaskDate(taskId, newDate) {
         return data.task;
     } catch (error) {
         console.error('Error updating task date:', error);
+        throw error;
+    }
+}
+
+// API: Delete task
+async function deleteTask(taskId) {
+    try {
+        const response = await fetch(`${API_BASE_URL}/tasks/${taskId}`, {
+            method: 'DELETE'
+        });
+        if (!response.ok) {
+            const data = await response.json();
+            throw new Error(data.message || 'Failed to delete task');
+        }
+        return true;
+    } catch (error) {
+        console.error('Error deleting task:', error);
         throw error;
     }
 }
@@ -281,7 +309,7 @@ async function handleLogin(e) {
 
         if (response.ok && data.success) {
             setCurrentUser(data.user);
-            if (data.user.role === 'admin') {
+            if (data.user.role === 'admin' || data.user.role === 'manager') {
                 window.location.href = 'dashboard.html';
             } else {
                 window.location.href = 'customer-list.html';
@@ -477,16 +505,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (loginForm) {
             loginForm.addEventListener('submit', handleLogin);
         }
-    } else if (pathname.includes('dashboard.html')) {
-        // Dashboard page - admin only
-        if (!checkAuth()) return;
-        const user = getCurrentUser();
-        if (user && user.role !== 'admin') {
-            alert('Access denied. Admin only.');
-            handleLogout();
-            return;
-        }
-    } else if (pathname.includes('add-customer.html')) {
+    }  else if (pathname.includes('add-customer.html')) {
         // Add customer page - admin only
         if (!checkAuth()) return;
         const user = getCurrentUser();

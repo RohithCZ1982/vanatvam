@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tasks - Vanatvam</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <nav class="navbar">
+            <div class="nav-brand">
+                <div class="logo-container">
+                    <div class="logo-inner">
+                        <div class="logo-text-top">VANATVAM</div>
+                        <div class="logo-icon">🌿</div>
+                        <div class="logo-text-bottom">SUSTAINABLE</div>
+                    </div>
+                </div>
+                <h1>Vanatvam</h1>
+            </div>
+            <button class="menu-toggle" id="menuToggle" onclick="toggleMobileMenu()" aria-label="Toggle menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            <div class="nav-menu" id="navMenu">
+                <a href="dashboard.html" class="nav-link">Dashboard</a>
+                <a href="tasks.html" class="nav-link active">Tasks</a>
+                <a href="calendar.html" class="nav-link">Calendar</a>
+                <a href="customer-list.html" class="nav-link">Customers</a>
+                <a href="add-customer.html" class="nav-link">Add Customer</a>
+                <span id="userRole" class="nav-user-info" style="display: none;"></span>
+                <a href="#" class="nav-link nav-link-logout" onclick="handleLogout(); return false;">Logout</a>
+            </div>
+        </nav>
+
+        <div class="dashboard single-column">
+            <div class="dashboard-header">
+                <h1>Project Tasks</h1>
+                <p class="card-subtitle">Create one-time or recurring work items for any project.</p>
+            </div>
+
+            <section class="task-form-card full-width-card">
+                <div class="card-header">
+                    <h2>Create Task</h2>
+                </div>
+                <form id="projectTaskForm" class="stacked-form">
+                        <div class="form-group">
+                            <label for="taskTitleInput">Task Title *</label>
+                            <input type="text" id="taskTitleInput" name="taskTitleInput" required placeholder="e.g., Site cleaning">
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="projectNameSelect">Project *</label>
+                                <select id="projectNameSelect" name="projectNameSelect" required>
+                                    <option value="">Select Project</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="taskDateInput">Start Date *</label>
+                                <input type="date" id="taskDateInput" name="taskDateInput" required>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="taskDescriptionInput">Description</label>
+                            <textarea id="taskDescriptionInput" name="taskDescriptionInput" rows="4" placeholder="Add instructions or context..."></textarea>
+                        </div>
+                        <div class="scheduler-section">
+                            <div class="form-group">
+                                <label for="scheduleTypeSelect">Automatic Scheduler</label>
+                                <select id="scheduleTypeSelect" name="scheduleTypeSelect">
+                                    <option value="none">One-time task</option>
+                                    <option value="weekly">Every week</option>
+                                    <option value="biweekly">Every 2 weeks</option>
+                                    <option value="triweekly">Every 3 weeks</option>
+                                    <option value="monthly">Monthly (once)</option>
+                                    <option value="quarterly">Quarterly (once)</option>
+                                    <option value="half_yearly">Half-yearly (once)</option>
+                                    <option value="yearly">Yearly (once)</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="occurrenceCountInput">Occurrences</label>
+                                <input type="number" id="occurrenceCountInput" name="occurrenceCountInput" min="1" max="24" value="6">
+                                <small class="field-hint">Number of tasks to auto-create when scheduler is enabled.</small>
+                            </div>
+                        </div>
+                        <div class="form-actions">
+                            <button type="reset" class="btn btn-secondary" id="clearTaskForm">Clear</button>
+                            <button type="submit" class="btn btn-primary">Save Task(s)</button>
+                        </div>
+                        <div id="taskFormStatus" class="form-status"></div>
+                    </form>
+                </section>
+
+                <section class="task-form-card full-width-card" style="margin-top: 30px;">
+                    <div class="card-header">
+                        <h2>Project Tasks</h2>
+                    </div>
+                    <div class="filter-controls" style="margin-bottom: 15px;">
+                        <div class="filter-group">
+                            <label for="tasksProjectFilter">Project:</label>
+                            <select id="tasksProjectFilter" class="date-input">
+                                <option value="">All Projects</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label for="tasksMonthFilter">Month:</label>
+                            <select id="tasksMonthFilter" class="date-input">
+                                <option value="">All Months</option>
+                                <option value="01">January</option>
+                                <option value="02">February</option>
+                                <option value="03">March</option>
+                                <option value="04">April</option>
+                                <option value="05">May</option>
+                                <option value="06">June</option>
+                                <option value="07">July</option>
+                                <option value="08">August</option>
+                                <option value="09">September</option>
+                                <option value="10">October</option>
+                                <option value="11">November</option>
+                                <option value="12">December</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label for="tasksYearFilter">Year:</label>
+                            <select id="tasksYearFilter" class="date-input">
+                                <option value="">All Years</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <button class="btn btn-secondary btn-small" onclick="clearTasksFilters()">Clear Filters</button>
+                            <button class="btn btn-danger btn-small" onclick="deleteAllProjectTasks()">Delete All</button>
+                        </div>
+                    </div>
+                    <div class="search-section" style="margin-bottom: 15px;">
+                        <div class="search-box">
+                            <input type="text" id="tasksSearchInput" placeholder="Search tasks by title or description...">
+                        </div>
+                    </div>
+                    <div class="table-container">
+                        <table id="projectTasksTable">
+                            <thead>
+                                <tr>
+                                    <th>Project</th>
+                                    <th>Title</th>
+                                    <th>Date</th>
+                                    <th>Schedule</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="projectTasksTableBody">
+                                <tr>
+                                    <td colspan="6" class="no-data">Loading tasks...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+            </div>
+        </div>
+    </div>
+    <script src="app.js"></script>
+    <script src="tasks.js"></script>
+</body>
+</html>
+

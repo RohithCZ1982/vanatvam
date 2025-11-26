@@ -9,14 +9,14 @@ async function initDashboardPage() {
     
     const user = getCurrentUser();
     if (user) {
-        if (user.role !== 'admin') {
-            alert('Access denied. Admin only.');
+        if (user.role !== 'admin' && user.role !== 'manager') {
+            alert('Access denied.');
             handleLogout();
             return;
         }
-        // Set user info in menu
+        setupDashboardNavigation(user);
         const userRoleEl = document.getElementById('userRole');
-        if (user && userRoleEl) {
+        if (userRoleEl) {
             userRoleEl.textContent = `${user.username} (${user.role})`;
             userRoleEl.style.display = 'inline';
         }
@@ -81,9 +81,9 @@ async function loadTasks(date, project = null) {
         tasksList.innerHTML = '<div class="no-data">Loading tasks...</div>';
         
         console.log('Loading tasks, date filter:', date || 'none (all tasks)', 'project filter:', project || 'all projects');
-        const tasks = await getAllTasks(date);
-        console.log('Tasks received from API:', tasks);
-        console.log('Number of tasks:', tasks ? tasks.length : 0);
+        const allTasks = await getAllTasks(null);
+        console.log('Tasks received from API:', allTasks);
+        console.log('Number of tasks:', allTasks ? allTasks.length : 0);
         
         // Get customers for filtering and display
         const customers = await getCustomers();
@@ -92,28 +92,51 @@ async function loadTasks(date, project = null) {
             customerMap[c.id] = c;
         });
 
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        // Always include overdue tasks regardless of filters
+        const overdueTasks = allTasks.filter(task => {
+            if ((task.status || 'pending') === 'completed') return false;
+            if (!task.taskDate) return false;
+            const taskDateObj = new Date(task.taskDate + 'T00:00:00');
+            return taskDateObj < today;
+        });
+
+        // Apply date filter locally when provided
+        let filteredTasks = allTasks.slice();
+        if (date) {
+            filteredTasks = filteredTasks.filter(task => task.taskDate === date);
+        }
+
         // Filter tasks by project if project filter is set
-        let filteredTasks = tasks;
         if (project && project !== '') {
-            filteredTasks = tasks.filter(task => {
-                const customer = customerMap[task.customerId];
-                return customer && customer.projectName === project;
+            const normalizedProject = project.toLowerCase();
+            filteredTasks = filteredTasks.filter(task => {
+                const customer = task.customerId ? customerMap[task.customerId] : null;
+                const taskProjectName = (task.projectName || '').toLowerCase();
+                const customerProjectName = customer && customer.projectName ? customer.projectName.toLowerCase() : '';
+                return taskProjectName === normalizedProject || customerProjectName === normalizedProject;
             });
         }
-        
-        console.log('Filtered tasks count:', filteredTasks ? filteredTasks.length : 0);
-        
-        // Update tasks count
+
+        const overdueExtras = overdueTasks.filter(task => !filteredTasks.some(t => t.id === task.id));
+        const displayTasks = [...overdueExtras, ...filteredTasks];
+
+        console.log('Rendering', displayTasks.length, 'tasks (filtered:', filteredTasks.length, 'overdue extras:', overdueExtras.length, ')');
+
         const tasksCountEl = document.getElementById('tasksCount');
         if (tasksCountEl) {
-            if (!filteredTasks || filteredTasks.length === 0) {
-                tasksCountEl.textContent = 'Total Tasks: 0';
+            if (displayTasks.length === 0) {
+                tasksCountEl.textContent = 'Tasks: 0';
+            } else if (overdueExtras.length > 0) {
+                tasksCountEl.textContent = `Tasks: ${filteredTasks.length} filtered, ${overdueExtras.length} overdue (always shown)`;
             } else {
-                tasksCountEl.textContent = `Total Tasks: ${filteredTasks.length}`;
+                tasksCountEl.textContent = `Tasks: ${filteredTasks.length}`;
             }
         }
-        
-        if (!filteredTasks || filteredTasks.length === 0) {
+
+        if (displayTasks.length === 0) {
             let message = 'No tasks found';
             if (date && project) {
                 message = `No tasks found for ${project} on ${date}`;
@@ -126,17 +149,12 @@ async function loadTasks(date, project = null) {
             tasksList.innerHTML = '<div class="no-data">' + message + '</div>';
             return;
         }
-        
-        // Update tasks count
-        if (tasksCountEl) {
-            tasksCountEl.textContent = `Total Tasks: ${filteredTasks.length}`;
-        }
 
-        console.log('Rendering', filteredTasks.length, 'tasks');
-        const tasksHTML = filteredTasks.map(task => {
+        const tasksHTML = displayTasks.map(task => {
             console.log('Processing task:', task);
-            const customer = customerMap[task.customerId] || { name: 'Unknown Customer', mobile: 'N/A', projectName: 'N/A' };
+            const customer = task.customerId ? customerMap[task.customerId] : null;
             let formattedDate = task.taskDate;
+            let overdueBadge = '';
             try {
                 const taskDate = new Date(task.taskDate + 'T00:00:00');
                 formattedDate = taskDate.toLocaleDateString('en-US', { 
@@ -145,28 +163,59 @@ async function loadTasks(date, project = null) {
                     month: 'long', 
                     day: 'numeric' 
                 });
+                
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                if ((task.status || 'pending') !== 'completed' && taskDate < today) {
+                    const diffMs = today.getTime() - taskDate.getTime();
+                    const diffDays = Math.max(1, Math.round(diffMs / (1000 * 60 * 60 * 24)));
+                    overdueBadge = `
+                        <span class="task-overdue">
+                            Overdue by ${diffDays} day${diffDays === 1 ? '' : 's'} (always shown)
+                        </span>
+                    `;
+                }
             } catch (e) {
                 console.error('Error formatting date:', e);
             }
             
+            const projectDisplay = task.projectName || (customer && customer.projectName ? customer.projectName : '');
+            const isProjectTask = Boolean(task.projectName && !task.customerId);
+            const sourceBadge = isProjectTask 
+                ? '<span class="task-source task-source-project">Project Task</span>'
+                : '<span class="task-source task-source-customer">Customer Task</span>';
+            const customerInfoRow = customer ? `
+                        <div class="task-info-row">
+                            <p class="task-customer"><strong>Customer:</strong> ${escapeHtml(customer.name || 'Unknown Customer')}</p>
+                            <p class="task-mobile"><strong>Mobile:</strong> ${escapeHtml(customer.mobile || 'N/A')}</p>
+                        </div>` : '';
+            const projectInfo = projectDisplay ? `<p class="task-project"><strong>Project:</strong> ${escapeHtml(projectDisplay)}</p>` : '';
+
+            const actionButtons = `
+                        <div class="task-header-actions">
+                            <button class="icon-btn icon-btn-success" title="Mark Completed" onclick="completeTask('${task.id}')">✓</button>
+                            <button class="icon-btn icon-btn-primary" title="Continue to Next Day" onclick="continueTask('${task.id}')">↷</button>
+                            ${isProjectTask ? `<button class="icon-btn icon-btn-danger" title="Delete Task" onclick="deleteProjectTask('${task.id}')">✕</button>` : ''}
+                        </div>`;
+
             return `
                 <div class="task-card" data-task-id="${task.id}">
                     <div class="task-header">
-                        <h3>${escapeHtml(task.title || 'Untitled Task')}</h3>
-                        <span class="task-date">${formattedDate}</span>
+                        <div class="task-title-row">
+                            <h3>${escapeHtml(task.title || 'Untitled Task')}</h3>
+                            ${sourceBadge}
+                        </div>
+                        <div class="task-subheader">
+                            <span class="task-date">${formattedDate}</span>
+                            ${actionButtons}
+                        </div>
                     </div>
                     <div class="task-body">
-                        <div class="task-info-row">
-                            <p class="task-customer"><strong>Customer:</strong> ${escapeHtml(customer.name)}</p>
-                            <p class="task-mobile"><strong>Mobile:</strong> ${escapeHtml(customer.mobile || 'N/A')}</p>
-                        </div>
-                        ${customer.projectName ? `<p class="task-project"><strong>Project:</strong> ${escapeHtml(customer.projectName)}</p>` : ''}
+                        ${customerInfoRow}
+                        ${projectInfo}
                         ${task.description ? `<div class="task-description-wrapper"><p class="task-description"><strong>Description:</strong> ${escapeHtml(task.description)}</p></div>` : ''}
                         <p class="task-status"><strong>Status:</strong> <span class="status-badge status-${task.status || 'pending'}">${escapeHtml(task.status || 'pending')}</span></p>
-                    </div>
-                    <div class="task-actions">
-                        <button class="btn btn-success btn-small" onclick="completeTask('${task.id}')">Mark Completed</button>
-                        <button class="btn btn-primary btn-small" onclick="continueTask('${task.id}')">Continue to Next Day</button>
+                        ${overdueBadge}
                     </div>
                 </div>
             `;
@@ -266,11 +315,57 @@ async function continueTask(taskId) {
     }
 }
 
+async function deleteProjectTask(taskId) {
+    if (!taskId) return;
+    if (!confirm('Delete this project task? This cannot be undone.')) {
+        return;
+    }
+    try {
+        await deleteTask(taskId);
+        const dateFilterEl = document.getElementById('dateFilter');
+        const projectFilterEl = document.getElementById('projectFilter');
+        const filterDate = dateFilterEl ? dateFilterEl.value || null : null;
+        const filterProject = projectFilterEl ? projectFilterEl.value || null : null;
+        await loadTasks(filterDate, filterProject);
+        alert('Task deleted.');
+    } catch (error) {
+        alert('Error deleting task: ' + error.message);
+    }
+}
+
 // Escape HTML to prevent XSS
 function escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
+}
+
+function setupDashboardNavigation(user) {
+    const navMenu = document.getElementById('navMenu');
+    if (!navMenu || !user) return;
+
+    let links = '';
+    if (user.role === 'admin') {
+        links = `
+            <a href="dashboard.html" class="nav-link active">Dashboard</a>
+            <a href="tasks.html" class="nav-link">Tasks</a>
+            <a href="calendar.html" class="nav-link">Calendar</a>
+            <a href="customer-list.html" class="nav-link">Customers</a>
+            <a href="add-customer.html" class="nav-link">Add Customer</a>
+        `;
+    } else {
+        links = `
+            <a href="dashboard.html" class="nav-link active">Dashboard</a>
+            <a href="customer-list.html" class="nav-link">Customers</a>
+            <a href="calendar.html" class="nav-link">Calendar</a>
+        `;
+    }
+
+    navMenu.innerHTML = `
+        ${links}
+        <span id="userRole" class="nav-user-info"></span>
+        <a href="#" class="nav-link nav-link-logout" onclick="handleLogout(); return false;">Logout</a>
+    `;
 }
 
 // Initialize when page loads

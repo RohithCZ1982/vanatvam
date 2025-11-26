@@ -290,27 +290,56 @@ def add_task():
         
         data = request.json
         customer_id = data.get('customerId')
+        customer_id = str(customer_id).strip() if customer_id else None
+        project_name = data.get('projectName', '')
+        project_name = project_name.strip() if isinstance(project_name, str) else ''
         title = data.get('title', '').strip()
         description = data.get('description', '').strip()
         task_date = data.get('taskDate')
         
-        if not customer_id or not title or not task_date:
+        if not customer_id and not project_name:
             return jsonify({
                 'success': False,
-                'message': 'Customer ID, title, and date are required'
+                'message': 'Project name or customer ID is required'
             }), 400
+        
+        if not title or not task_date:
+            return jsonify({
+                'success': False,
+                'message': 'Title and date are required'
+            }), 400
+        
+        # Derive project name from customer if missing
+        if customer_id and not project_name:
+            customers = load_customers()
+            customer = next((c for c in customers if c.get('id') == customer_id), None)
+            if customer:
+                project_name = customer.get('projectName', '').strip()
         
         tasks = load_tasks()
         
         new_task = {
             'id': str(int(datetime.now().timestamp() * 1000)),
             'customerId': customer_id,
+            'projectName': project_name,
             'title': title,
             'description': description,
             'taskDate': task_date,
             'status': 'pending',
             'createdAt': datetime.now().isoformat()
         }
+        
+        # Persist optional scheduler metadata if provided
+        optional_fields = [
+            'scheduleType',
+            'scheduleIteration',
+            'scheduleTotalIterations',
+            'scheduleGroupId',
+            'autoScheduled'
+        ]
+        for field in optional_fields:
+            if field in data:
+                new_task[field] = data[field]
         
         tasks.append(new_task)
         save_tasks(tasks)
@@ -332,6 +361,7 @@ def get_tasks():
         date_filter = request.args.get('date')
         include_completed = request.args.get('include_completed', 'false').lower() == 'true'
         customer_id = request.args.get('customerId')
+        project_filter = request.args.get('projectName')
         tasks = load_tasks()
         
         # Ensure tasks is a list
@@ -341,6 +371,20 @@ def get_tasks():
         # Filter by customer if customerId is provided
         if customer_id:
             tasks = [t for t in tasks if t.get('customerId') == customer_id]
+        
+        # Filter by project name if provided
+        if project_filter:
+            project_filter_lower = project_filter.strip().lower()
+            customers = load_customers()
+            customer_project_map = {
+                c.get('id'): (c.get('projectName') or '').strip().lower()
+                for c in customers
+            }
+            tasks = [
+                t for t in tasks
+                if (t.get('projectName') or '').strip().lower() == project_filter_lower
+                or (customer_project_map.get(t.get('customerId')) == project_filter_lower)
+            ]
         
         # Filter by date if provided
         if date_filter:
@@ -392,6 +436,10 @@ def update_task_status(task_id):
             }), 404
         
         tasks[task_index]['status'] = status
+        if status == 'completed':
+            tasks[task_index]['completedOn'] = datetime.now().date().isoformat()
+        else:
+            tasks[task_index].pop('completedOn', None)
         save_tasks(tasks)
         
         return jsonify({
@@ -444,6 +492,31 @@ def update_task_date(task_id):
             'success': True,
             'task': tasks[task_index]
         }), 200
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'message': f'Server error: {str(e)}'
+        }), 500
+
+# Delete task
+@app.route('/api/tasks/<task_id>', methods=['DELETE'])
+def delete_task(task_id):
+    try:
+        tasks = load_tasks()
+        if not isinstance(tasks, list):
+            tasks = []
+
+        original_len = len(tasks)
+        tasks = [t for t in tasks if t.get('id') != task_id]
+
+        if len(tasks) == original_len:
+            return jsonify({
+                'success': False,
+                'message': 'Task not found'
+            }), 404
+
+        save_tasks(tasks)
+        return jsonify({'success': True}), 200
     except Exception as e:
         return jsonify({
             'success': False,

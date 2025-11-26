@@ -52,12 +52,14 @@ function setupNavigation() {
     if (user.role === 'admin') {
         menuHTML = `
             <a href="dashboard.html" class="nav-link">Dashboard</a>
+            <a href="tasks.html" class="nav-link">Tasks</a>
             <a href="calendar.html" class="nav-link active">Calendar</a>
             <a href="customer-list.html" class="nav-link">Customers</a>
             <a href="add-customer.html" class="nav-link">Add Customer</a>
         `;
     } else {
         menuHTML = `
+            <a href="dashboard.html" class="nav-link">Dashboard</a>
             <a href="customer-list.html" class="nav-link">Customers</a>
             <a href="calendar.html" class="nav-link active">Calendar</a>
         `;
