@@ -213,7 +213,15 @@ async function loadTasks(date, project = null) {
                     <div class="task-body">
                         ${customerInfoRow}
                         ${projectInfo}
-                        ${task.description ? `<div class="task-description-wrapper"><p class="task-description"><strong>Description:</strong> ${escapeHtml(task.description)}</p></div>` : ''}
+                        ${task.description ? `
+                            <div class="task-description-wrapper" data-task-id="${task.id}">
+                                <p class="task-description">
+                                    <strong>Description:</strong>
+                                    <span class="task-description-text">${escapeHtml(task.description)}</span>
+                                    <button class="task-description-more" style="display: none;" onclick="showTaskDescriptionModal('${task.id}', '${escapeHtml(task.description).replace(/'/g, "\\'")}'); event.stopPropagation();" title="View full description">...</button>
+                                </p>
+                            </div>
+                        ` : ''}
                         <p class="task-status"><strong>Status:</strong> <span class="status-badge status-${task.status || 'pending'}">${escapeHtml(task.status || 'pending')}</span></p>
                         ${overdueBadge}
                     </div>
@@ -223,6 +231,22 @@ async function loadTasks(date, project = null) {
         
         console.log('Setting innerHTML with tasks');
         tasksList.innerHTML = tasksHTML;
+        
+        // Check which descriptions are truncated and show "..." button only for those
+        setTimeout(() => {
+            const descriptionWrappers = tasksList.querySelectorAll('.task-description-wrapper');
+            descriptionWrappers.forEach(wrapper => {
+                const textElement = wrapper.querySelector('.task-description-text');
+                const moreButton = wrapper.querySelector('.task-description-more');
+                if (textElement && moreButton) {
+                    // Check if text is truncated (scrollHeight > clientHeight)
+                    if (textElement.scrollHeight > textElement.clientHeight) {
+                        moreButton.style.display = 'block';
+                    }
+                }
+            });
+        }, 100);
+        
         console.log('Tasks displayed successfully');
     } catch (error) {
         console.error('Error loading tasks:', error);
@@ -330,6 +354,60 @@ async function deleteProjectTask(taskId) {
         alert('Task deleted.');
     } catch (error) {
         alert('Error deleting task: ' + error.message);
+    }
+}
+
+// Show task description modal
+function showTaskDescriptionModal(taskId, descriptionText) {
+    let modal = document.getElementById('taskDescriptionModal');
+    if (!modal) {
+        const modalHTML = `
+            <div id="taskDescriptionModal" class="modal" onclick="closeTaskDescriptionModal(event)">
+                <div class="modal-content" onclick="event.stopPropagation()" style="max-width: 600px;">
+                    <div class="modal-header">
+                        <h2>Task Description</h2>
+                        <span class="close" onclick="closeTaskDescriptionModal(event)">&times;</span>
+                    </div>
+                    <div class="modal-body">
+                        <p id="taskDescriptionModalText" style="white-space: pre-wrap; word-wrap: break-word; line-height: 1.6;"></p>
+                    </div>
+                    <div class="form-actions" style="margin-top: 20px;">
+                        <button type="button" class="btn btn-secondary" onclick="closeTaskDescriptionModal(event)">Close</button>
+                    </div>
+                </div>
+            </div>
+        `;
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
+        
+        modal = document.getElementById('taskDescriptionModal');
+        if (modal) {
+            modal.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    closeTaskDescriptionModal(e);
+                }
+            });
+        }
+    }
+    
+    const modalText = document.getElementById('taskDescriptionModalText');
+    if (modalText) {
+        modalText.textContent = descriptionText;
+    }
+    
+    if (modal) {
+        modal.style.display = 'flex';
+        modal.focus();
+    }
+}
+
+// Close task description modal
+function closeTaskDescriptionModal(event) {
+    if (event) {
+        event.stopPropagation();
+    }
+    const modal = document.getElementById('taskDescriptionModal');
+    if (modal) {
+        modal.style.display = 'none';
     }
 }
 
